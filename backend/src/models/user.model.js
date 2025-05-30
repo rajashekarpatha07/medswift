@@ -42,10 +42,6 @@ const userSchema = new Schema({
     type: String,
     default: null,
   },
-  createdAt: {
-    type: Date,
-    default: Date.now,
-  },
 },{ timestamps: true });
 userSchema.index({
     location: "2dsphere"
