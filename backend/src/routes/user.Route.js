@@ -11,6 +11,3 @@ router.route("/logout").post(verifyTokenMiddleware, logoutUser);
 
 
 export default router;
-
-
-

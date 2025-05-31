@@ -4,6 +4,7 @@ import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
 import userRoutes from "./src/routes/user.route.js";
+import  ambulanceRoutes  from "./src/routes/ambulance.Route.js"
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -21,5 +22,6 @@ app.use(express.static(path.join(__dirname, "../frontend/public")));
 app.use(cookieParser());
 
 app.use("/api/v1/users", userRoutes)
+app.use("/api/v1/ambulance", ambulanceRoutes);
 
 export default app 

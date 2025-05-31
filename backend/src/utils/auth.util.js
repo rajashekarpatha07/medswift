@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
+import { Ambulance } from "../models/ambulance.model.js";
 dotenv.config();
 
 export const hashpassword = async (plainpassword) => {
@@ -30,7 +31,7 @@ export const options = {
     secure: true
 }
 
-export const verifyToken = async (accessToken) => {
+export const verifyTokenforUser = async (accessToken) => {
   try {
     if (!accessToken) {
       throw new ApiError(401, "Unauthorized Access");
@@ -47,6 +48,28 @@ export const verifyToken = async (accessToken) => {
     }
 
     return user;
+  } catch (err) {
+    throw new ApiError(401, err?.message || "Invalid Access Token");
+  }
+};
+
+export const verifyTokenforAmbulance = async (accessToken) => {
+  try {
+    if (!accessToken) {
+      throw new ApiError(401, "Unauthorized Access");
+    }
+
+    const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
+
+    const ambulance = await Ambulance.findById(decoded?.id || decoded?._id).select(
+      "-password -refreshToken"
+    );
+
+    if (!ambulance) {
+      throw new ApiError(401, "Invalid Access Token");
+    }
+
+    return ambulance;
   } catch (err) {
     throw new ApiError(401, err?.message || "Invalid Access Token");
   }
