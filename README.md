@@ -36,7 +36,7 @@ MedSwift is a real-time ambulance tracking and emergency dispatch system designe
 - JWT for authentication
 - Socket.IO / MQTT for real-time data
 - Google Maps API
-- Redis (optional caching)
+- Redis
 
 ---
 
