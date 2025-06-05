@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(cors({
-    origin: ["http://localhost:3000", "https://example.com","http://127.0.1:3000"],
+    origin: ["http://localhost:3000", "http://localhost:5173","http://127.0.1:3000"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true
 }));

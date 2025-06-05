@@ -8,38 +8,36 @@ import {
 } from "../../utils/auth.util.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-  try {
-    const { name, email, password, phone, location } = req.body;
+  const { name, email, password, phone, location } = req.body;
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ $or: [{ email }, { phone }] });
-    if (existingUser) {
-      throw new ApiError(400, "User with this email or phone already exists");
-    }
-
-    // Create user
-    const user = await User.create({ name, email, password, phone, location });
-
-    // Fetch created user without sensitive fields
-    const createdUser = await User.findById(user._id).select(
-      "-password -refreshToken"
-    );
-
-    if (!createdUser) {
-      throw new ApiError(500, "Something went wrong while creating the user");
-    }
-
-    return res
-      .status(201)
-      .json(new ApiResponse(201, createdUser, "User registered successfully"));
-  } catch (err) {
-    return res.status(err.statusCode || 500).json({
+  // Skip if any required field is missing (extra safe layer)
+  if (!name || !email || !password || !phone || !location?.coordinates?.length) {
+    return res.status(400).json({
       success: false,
-      message: err.message || "Internal Server Error",
-      errors: err.errors || [],
-      data: null,
+      message: "All fields are required including valid location",
     });
   }
+
+  // Check existing user (lean for performance)
+  const existingUser = await User.findOne({ $or: [{ email }, { phone }] }).lean();
+  if (existingUser) {
+    return res.status(400).json({
+      success: false,
+      message: "User with this email or phone already exists",
+    });
+  }
+
+  // Create user directly
+  const user = await User.create({ name, email, password, phone, location });
+
+  // Send filtered user info (lean + select)
+  const createdUser = await User.findById(user._id)
+    .select("-password -refreshToken")
+    .lean();
+
+  return res.status(201).json(
+    new ApiResponse(201, createdUser, "User registered successfully")
+  );
 });
 
 const loginUser = asyncHandler(async (req, res) => {
@@ -95,6 +93,7 @@ const logoutUser = asyncHandler(async (req, res) => {
     .clearCookie("accessToken", options)
     .json(new ApiResponse(200, {}, "User Logged Out...!"));
 });
+
 
 
 export { registerUser, loginUser, logoutUser };
