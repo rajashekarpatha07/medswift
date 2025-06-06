@@ -42,7 +42,7 @@ export const loginAmbulance = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Phone and password are required");
   }
 
-  const ambulance = await Ambulance.findOne({ driverPhone });
+  const ambulance = await Ambulance.findOne({driverPhone});
   if (!ambulance) throw new ApiError(404, "Ambulance not found");
 
   const isMatch = await ambulance.checkPassword(password);
