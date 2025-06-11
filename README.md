@@ -59,12 +59,6 @@ Contributions are welcome but please reach out before submitting major changes.
 
 ---
 
-## License
-
-*To be decided.*
-
----
-
 *Made with focus on scalable, secure, and efficient backend systems.*
 
 ---
