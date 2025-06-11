@@ -26,6 +26,23 @@ const userSchema = new Schema({
     trim: true,
     lowercase: true,
   },
+  bloodGroup: {
+    type: String,
+    enum: [
+      "A+",
+      "A-",
+      "B+",
+      "B-",
+      "O+",
+      "O-",
+      "AB+",
+      "AB-",
+    ],
+  },
+  medicalHistory: {
+    type: String,
+    default: null,
+  },
   location: {
     type: {
       type: String,

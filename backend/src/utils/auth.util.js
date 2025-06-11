@@ -55,6 +55,7 @@ export const verifyTokenforUser = async (accessToken) => {
 
 export const verifyTokenforAmbulance = async (accessToken) => {
   try {
+    console.log(accessToken)
     if (!accessToken) {
       throw new ApiError(401, "Unauthorized Access");
     }

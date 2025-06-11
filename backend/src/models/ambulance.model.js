@@ -48,6 +48,10 @@ const ambulanceSchema = new Schema(
       trim: true,
       unique: true,
     },
+    RefreshToken:{
+      type: String,
+      default: null,
+    }
   },
   { timestamps: true }
 );

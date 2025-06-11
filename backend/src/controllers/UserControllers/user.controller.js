@@ -6,9 +6,10 @@ import {
   GenerateAccessToken,GenerateRefreshToken,
   isPasswordMatch, options
 } from "../../utils/auth.util.js";
+import { Ambulance } from "../../models/ambulance.model.js";
 
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, location } = req.body;
+  const { name, email, password, phone, location, bloodGroup, medicalHistory} = req.body;
 
   // Skip if any required field is missing (extra safe layer)
   if (!name || !email || !password || !phone || !location?.coordinates?.length) {
@@ -28,7 +29,7 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // Create user directly
-  const user = await User.create({ name, email, password, phone, location });
+  const user = await User.create({ name, email, password, phone, location, bloodGroup, medicalHistory });
 
   // Send filtered user info (lean + select)
   const createdUser = await User.findById(user._id)
@@ -72,7 +73,7 @@ const loginUser = asyncHandler(async (req, res) => {
 
   return res
     .cookie("accessToken", accessToken, options)
-    .cookie("refreshToken", refreshToken, options)
+    // .cookie("refreshToken", refreshToken, options)
     .status(200)
     .json(new ApiResponse(200, loggedInUser, "User logged in successfully"));
 });
@@ -89,11 +90,46 @@ const logoutUser = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .clearCookie("refreshToken", options)
+    // .clearCookie("refreshToken", options)
     .clearCookie("accessToken", options)
     .json(new ApiResponse(200, {}, "User Logged Out...!"));
 });
 
 
+const findNearbyAmbulances = asyncHandler(async (req, res) => {
+  const { location } = req.body;
 
-export { registerUser, loginUser, logoutUser };
+  if (
+    !location ||
+    location.type !== "Point" ||
+    !Array.isArray(location.coordinates) ||
+    location.coordinates.length !== 2
+  ) {
+    throw new ApiError(400, "Latitude and longitude are required");
+  }
+
+  const [lng, lat] = location.coordinates;
+
+  const ambulances = await Ambulance.find({
+    status: "idle",
+    driverlocation: {
+      $near: {
+        $geometry: {
+          type: "Point",
+          coordinates: [lng, lat],
+        },
+        $maxDistance: 5000, // meters
+      },
+    },
+  });
+
+  console.log(ambulances)
+  res.status(200).json(
+    new ApiResponse(200, ambulances, "Nearby ambulances found successfully")
+  );
+});
+
+
+
+
+export { registerUser, loginUser, logoutUser, findNearbyAmbulances };
