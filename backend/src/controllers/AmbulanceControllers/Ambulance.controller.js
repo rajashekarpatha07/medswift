@@ -2,8 +2,9 @@ import { Ambulance } from "../../models/ambulance.model.js";
 import { ApiError } from "../../utils/ApiError.js";
 import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
-import { options } from "../../utils/auth.util.js";
+import { options, GenerateRefreshToken } from "../../utils/auth.util.js";
 
+// Register
 export const registerAmbulance = asyncHandler(async (req, res) => {
   const { drivername, driverPhone, password, driverlocation, vechileNumber } = req.body;
 
@@ -21,12 +22,11 @@ export const registerAmbulance = asyncHandler(async (req, res) => {
     driverlocation,
     vechileNumber,
   });
-  const createdAmbulance = await Ambulance.findById(ambulance._id).select(
-    "-password -refreshToken"
-  );
+
+  const createdAmbulance = await Ambulance.findById(ambulance._id).select("-password -refreshToken");
 
   const accessToken = ambulance.getAccessToken();
-  const refreshToken = ambulance.getRefreshToken();
+  const refreshToken = GenerateRefreshToken(ambulance._id);
 
   ambulance.refreshToken = refreshToken;
   await ambulance.save();
@@ -38,6 +38,7 @@ export const registerAmbulance = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, createdAmbulance, "Ambulance registered successfully"));
 });
 
+// Login
 export const loginAmbulance = asyncHandler(async (req, res) => {
   const { driverPhone, password } = req.body;
 
@@ -51,11 +52,11 @@ export const loginAmbulance = asyncHandler(async (req, res) => {
   const isMatch = await ambulance.checkPassword(password);
   if (!isMatch) throw new ApiError(401, "Invalid credentials");
 
-  const loggedInAmbulance = await Ambulance.findById(ambulance._id).select(
-    "-password -refreshToken"
-  );
+  const loggedInAmbulance = await Ambulance.findById(ambulance._id).select("-password -refreshToken");
 
   const accessToken = ambulance.getAccessToken();
+  const refreshToken = GenerateRefreshToken(ambulance._id);
+
   ambulance.refreshToken = refreshToken;
   await ambulance.save();
 
@@ -66,26 +67,27 @@ export const loginAmbulance = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, loggedInAmbulance, "Logged in successfully"));
 });
 
+// Logout
 export const logoutAmbulance = asyncHandler(async (req, res) => {
   await Ambulance.findByIdAndUpdate(req.ambulance._id, {
     $set: { refreshToken: null }
   });
 
-  const options = {
+  const cookieOptions = {
     httpOnly: true,
     secure: true,
   };
 
   return res
     .status(200)
-    .clearCookie("refreshToken", options)
-    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", cookieOptions)
+    .clearCookie("accessToken", cookieOptions)
     .json(new ApiResponse(200, {}, "Ambulance Logged Out...!"));
 });
 
+// Update status
 export const updateAmbulanceStatus = asyncHandler(async (req, res) => {
   const ambulanceId = req.ambulance._id;
-  console.log("Ambulance ID in controller:", ambulanceId);
   const { status, driverlocation } = req.body;
 
   if (!status || !["idle", "ready", "offline"].includes(status)) {
