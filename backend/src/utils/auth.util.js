@@ -55,14 +55,9 @@ export const verifyTokenforUser = async (accessToken) => {
 
 export const verifyTokenforAmbulance = async (accessToken) => {
   try {
-    console.log(accessToken)
-    if (!accessToken) {
-      throw new ApiError(401, "Unauthorized Access");
-    }
-
     const decoded = jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET);
 
-    const ambulance = await Ambulance.findById(decoded?.id || decoded?._id).select(
+    const ambulance = await Ambulance.findById(decoded.id || decoded._id).select(
       "-password -refreshToken"
     );
 

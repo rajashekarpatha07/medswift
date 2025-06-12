@@ -12,14 +12,16 @@ export const verifyTokenMiddleware = asyncHandler(async (req, res, next) => {
   next();
 });
 
-export const verifyTokenForAmbulanceMiddleware = asyncHandler(
-  async (req, res, next) => {
-    const token =
-      req.cookies?.accessToken ||
-      req.header("Authorization")?.replace("Bearer ", "");
+export const verifyTokenForAmbulanceMiddleware = asyncHandler(async (req, res, next) => {
+  const token =
+    req.cookies?.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
 
-    const ambulance = await verifyTokenforAmbulance(token);
-    req.ambulance = ambulance;
-    next();
+  if (!token) {
+    throw new ApiError(401, "Access token missing");
   }
-);
+
+  const ambulance = await verifyTokenforAmbulance(token);
+  req.ambulance = ambulance;
+  next();
+});
