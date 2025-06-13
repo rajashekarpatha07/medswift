@@ -1,6 +1,7 @@
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { verifyTokenforUser } from "../utils/auth.util.js";
 import { verifyTokenforAmbulance } from "../utils/auth.util.js";
+import { ApiError } from "../utils/ApiError.js";
 
 export const verifyTokenMiddleware = asyncHandler(async (req, res, next) => {
   const token =
