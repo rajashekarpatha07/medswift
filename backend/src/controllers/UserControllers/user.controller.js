@@ -110,25 +110,43 @@ const findNearbyAmbulances = asyncHandler(async (req, res) => {
 
   const [lng, lat] = location.coordinates;
 
-  const ambulances = await Ambulance.find({
-    status: "idle",
-    driverlocation: {
-      $near: {
-        $geometry: {
-          type: "Point",
-          coordinates: [lng, lat],
+  let ambulances = [];
+  let radius = 100; // Start with 5km
+  const maxRadius = 50000; // Max 50km
+
+  while (radius <= maxRadius && ambulances.length === 0) {
+    ambulances = await Ambulance.find({
+      status: "idle",
+      driverlocation: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat],
+          },
+          $maxDistance: radius,
         },
-        $maxDistance: 5000, // meters
       },
-    },
+    });
+
+    if (ambulances.length === 0) {
+      radius += 5000; // Increment by 5km
+    }
+  }
+  // Log found ambulances
+  ambulances.forEach((driver) => {
+    console.log(`Driver: ${driver.drivername}, Coords: ${driver.driverlocation.coordinates}`);
   });
 
-  console.log(ambulances)
   res.status(200).json(
-    new ApiResponse(200, ambulances, "Nearby ambulances found successfully")
+    new ApiResponse(
+      200,
+      ambulances,
+      ambulances.length
+        ? `Found ${ambulances.length} ambulances within ${radius / 1000} km`
+        : "No nearby ambulances found within 50 km"
+    )
   );
 });
-
 
 
 
