@@ -1,0 +1,21 @@
+name: Block Backend Changes
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+
+jobs:
+  prevent_backend_edit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check author of PR
+        run: |
+          AUTHOR="${{ github.event.pull_request.user.login }}"
+          echo "Pull request made by: $AUTHOR"
+          if [[ "$AUTHOR" != "rajashekarpatha07" ]]; then
+            echo "::error title=Unauthorized Folder Access::❌ You do NOT have access to modify the backend folder. Only @rajashekarpatha07 is allowed."
+            exit 1
+          else
+            echo "✅ Backend folder changes allowed."
+          fi
