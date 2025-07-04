@@ -26,7 +26,7 @@ const ambulanceSchema = new Schema(
     },
     status: {
       type: String,
-      enum: ["idle", "on-trip", "offline"],
+      enum: ["ready", "on-trip", "offline"],
       default: "offline",
       required: true,
     },

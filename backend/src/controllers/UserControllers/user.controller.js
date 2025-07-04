@@ -116,7 +116,7 @@ const findNearbyAmbulances = asyncHandler(async (req, res) => {
 
   while (radius <= maxRadius && ambulances.length === 0) {
     ambulances = await Ambulance.find({
-      status: "idle",
+      status: "ready",
       driverlocation: {
         $near: {
           $geometry: {

@@ -97,7 +97,7 @@ export const updateAmbulanceStatus = asyncHandler(async (req, res) => {
   const ambulanceId = req.ambulance._id;
   const { status, driverlocation } = req.body;
 
-  const validStatuses = ["idle", "ready", "offline"];
+  const validStatuses = ["ready", "on-trip", "offline"];
   if (!status || !validStatuses.includes(status)) {
     throw new ApiError(400, "Invalid status value");
   }
