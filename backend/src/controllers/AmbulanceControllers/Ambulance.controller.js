@@ -121,3 +121,4 @@ export const updateAmbulanceStatus = asyncHandler(async (req, res) => {
 
   res.status(200).json(new ApiResponse(200, updated, "Status updated successfully"));
 });
+
