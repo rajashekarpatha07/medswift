@@ -42,7 +42,7 @@ const ambulanceSchema = new Schema(
         required: true,
       },
     },
-    vechileNumber: {
+    vehicleNumber: {
       type: String,
       required: true,
       trim: true,

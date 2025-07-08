@@ -4,11 +4,29 @@ import { ApiResponse } from "../../utils/ApiResponse.js";
 import { asyncHandler } from "../../utils/AsyncHandler.js";
 import { options, GenerateRefreshToken, GenerateAccessToken} from "../../utils/auth.util.js";
 
+const generateAccessAndRefereshTokens = async(AmbulanceId) =>{
+    try {
+        const ambulance = await Ambulance.findById(Ambulance)
+        const accessToken = ambulance.generateAccessToken()
+        const refreshToken = ambulance.generateRefreshToken()
+
+        ambulance.refreshToken = refreshToken
+        await ambulance.save({ validateBeforeSave: false })
+
+        return {accessToken, refreshToken}
+
+
+    } catch (error) {
+        throw new ApiError(500, "Something went wrong while generating referesh and access token")
+    }
+}
+
+
 // @route   POST /api/ambulance/register
 export const registerAmbulance = asyncHandler(async (req, res) => {
-  const { drivername, driverPhone, password, driverlocation, vechileNumber } = req.body;
+  const { drivername, driverPhone, password, driverlocation, vehicleNumber } = req.body;
 
-  if (!drivername || !driverPhone || !password || !driverlocation || !vechileNumber) {
+  if (!drivername || !driverPhone || !password || !driverlocation || !vehicleNumber) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -20,7 +38,7 @@ export const registerAmbulance = asyncHandler(async (req, res) => {
     driverPhone,
     password,
     driverlocation,
-    vechileNumber,
+    vehicleNumber,
   });
 
   const accessToken =  GenerateAccessToken(ambulance._id);
@@ -70,6 +88,7 @@ export const loginAmbulance = asyncHandler(async (req, res) => {
   res
     .status(200)
     .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
     .json(new ApiResponse(200, data, "Logged in successfully"));
 });
 
@@ -92,7 +111,71 @@ export const logoutAmbulance = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Logged out successfully"));
 });
 
-// @route   PATCH /api/ambulance/status
+// @Route POST 
+export const getAmbulanceData = asyncHandler(async (req, res) => {
+  const ambulanceId = req.ambulance._id;
+  console.log("Fetching data for ambulance ID:", ambulanceId);
+
+  const ambulance = await Ambulance.findById(ambulanceId).select("-password -refreshToken");
+  if (!ambulance) {
+    console.error("Ambulance not found for ID:", ambulanceId);
+    throw new ApiError(404, "Ambulance not found");
+  }
+
+  console.log("Ambulance data retrieved:", ambulance);
+  res.status(200).json(new ApiResponse(200, ambulance, "Ambulance data retrieved successfully"));
+});
+
+export const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    if (!incomingRefreshToken) {
+        throw new ApiError(401, "unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incomingRefreshToken,
+            process.env.REFRESH_TOKEN_SECRET
+        )
+    
+        const ambulance = await Ambulance.findById(decodedToken?._id)
+    
+        if (!ambulance) {
+            throw new ApiError(401, "Invalid refresh token")
+        }
+    
+        if (incomingRefreshToken !== ambulance?.refreshToken) {
+            throw new ApiError(401, "Refresh token is expired or used")
+            
+        }
+    
+        const options = {
+            httpOnly: true,
+            secure: true
+        }
+    
+        const {accessToken, newRefreshToken} = await generateAccessAndRefereshTokens(ambulance._id)
+    
+        return res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refreshToken", newRefreshToken, options)
+        .json(
+            new ApiResponse(
+                200, 
+                {accessToken, refreshToken: newRefreshToken},
+                "Access token refreshed"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401, error?.message || "Invalid refresh token")
+    }
+
+})
+
+
+// @route   PATCH /api/v1/ambulance/status
 export const updateAmbulanceStatus = asyncHandler(async (req, res) => {
   const ambulanceId = req.ambulance._id;
   const { status, driverlocation } = req.body;
