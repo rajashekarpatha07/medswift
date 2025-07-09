@@ -108,7 +108,7 @@ const LoginAmbulance = () => {
       setFormData({ driverPhone: "", password: "" });
       setLocation({ lat: null, lng: null }); // Reset location
       // Redirect to dashboard after 1.5s
-      setTimeout(() => navigate("/dashboard"), 1500); // Adjust path as needed
+      setTimeout(() => navigate("/ambulance/dashboard"), 1500); 
     } catch (err) {
       setError(
         err.response?.data?.message || "An error occurred during login."

@@ -93,7 +93,8 @@ const DashboardUser = () => {
         location: { type: "Point", coordinates: [location.lng, location.lat] },
       });
       const response = await axios.post(
-        "http://localhost:5000/api/v1/ambulance/emergencyRequest",
+        //http://localhost:5000/api/v1/Ambulance/emergencyRequest
+        "http://localhost:5000/api/v1/users/emergencyRequest",
         {
           location: {
             type: "Point",
