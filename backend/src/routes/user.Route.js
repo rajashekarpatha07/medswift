@@ -8,7 +8,9 @@ router.route("/login").post( loginUser );
 
 //secure routes
 router.route("/logout").post(verifyTokenMiddleware, logoutUser);
-router.route("/emergencyRequest").post( findNearbyAmbulances );
-
+router.route("/emergencyRequest").post( verifyTokenMiddleware,findNearbyAmbulances );
+router.route("/me").get(verifyTokenMiddleware, (req, res) => {
+  res.json({ user: req.user });
+});
 
 export default router;
