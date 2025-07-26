@@ -1,31 +1,28 @@
-import http from "http";
-import { Server } from "socket.io";
-import dotenv from "dotenv";
+import connectDB from "./src/config/Dbconnection.js";
 import app from "./app.js";
-import connectDB from "./src/config/Db.Connection.js";
-import handleSocketConnection from "./src/sockets/socketServer.js";
+import { Server } from "socket.io";
+import { createServer } from "http";
+import initializeSocketIO from "./src/sockets/socket.js";
 
-dotenv.config();
+const PORT = process.env.PORT || 8000;
 
-const server = http.createServer(app);
-const io = new Server(server, {
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
   cors: {
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
+    origin: "*",
+    methods: ["GET", "POST", "PATCH", "UPDATE"],
   },
 });
 
-io.on("connection", handleSocketConnection);
+initializeSocketIO(io);
 
 connectDB()
   .then(() => {
-    const PORT = process.env.PORT || 5000;
-    server.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
+    httpServer.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((err) => {
-    console.error("❌ DB connection failed:", err);
-    process.exit(1);
+    console.log("DB connection error:", err);
   });

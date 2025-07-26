@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Test Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .log-entry {
+            border-left: 4px solid;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+        }
+        .log-user { border-color: #3b82f6; }
+        .log-ambulance { border-color: #ef4444; }
+        .log-server { border-color: #22c55e; }
+        .log-error { border-color: #f97316; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-4xl">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">MedSwift Socket Tester</h1>
+            <p class="text-lg text-gray-600 mt-2">
+                Connection Status: <span id="connection-status" class="font-semibold text-red-500">Disconnected</span>
+            </p>
+        </header>
+
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- User Panel -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-blue-600">User Panel</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="userId" class="block text-sm font-medium text-gray-700">User ID</label>
+                        <input type="text" id="userId" value="60d5ecb3e7a3e4a3e8f1b1a1" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <button id="connectUserBtn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">Connect as User</button>
+                    <button id="emergencyBtn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">Request Emergency Trip</button>
+                </div>
+            </div>
+
+            <!-- Ambulance Panel -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-4 border-b pb-2 text-red-600">Ambulance Panel</h2>
+                <div class="space-y-4">
+                    <div>
+                        <label for="ambulanceId" class="block text-sm font-medium text-gray-700">Ambulance ID</label>
+                        <input type="text" id="ambulanceId" value="60d5f0a3e7a3e4a3e8f1b1a2" class="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-red-500 focus:border-red-500">
+                    </div>
+                    <button id="connectAmbulanceBtn" class="w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors">Connect as Ambulance</button>
+                    <hr>
+                    <div>
+                        <label for="tripId" class="block text-sm font-medium text-gray-700">Active Trip ID (from log)</label>
+                        <input type="text" id="tripId" placeholder="Will be populated from 'newTripRequest'" class="mt-1 block w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md shadow-sm" readonly>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button id="acceptTripBtn" class="bg-green-500 text-white py-2 px-4 rounded-md hover:bg-green-600">Accept</button>
+                        <button id="enRouteBtn" class="bg-yellow-500 text-white py-2 px-4 rounded-md hover:bg-yellow-600">En-Route</button>
+                        <button id="arrivedBtn" class="bg-purple-500 text-white py-2 px-4 rounded-md hover:bg-purple-600">Arrived</button>
+                        <button id="updateLocationBtn" class="bg-indigo-500 text-white py-2 px-4 rounded-md hover:bg-indigo-600">Send Location</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Logs Panel -->
+        <div class="mt-8 bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-2xl font-bold mb-4 border-b pb-2">Event Logs</h2>
+            <div id="logs" class="h-64 overflow-y-auto bg-gray-900 text-white p-4 rounded-md font-mono text-sm">
+                <p>Waiting for events...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io('http://localhost:8000');
+            const logsContainer = document.getElementById('logs');
+
+            // --- Helper to log messages ---
+            const log = (message, type = 'server') => {
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type}`;
+                entry.innerHTML = `<p class="font-bold">[${type.toUpperCase()}] ${new Date().toLocaleTimeString()}</p><p>${message}</p>`;
+                logsContainer.appendChild(entry);
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            };
+
+            // --- Socket Connection Events ---
+            socket.on('connect', () => {
+                const statusEl = document.getElementById('connection-status');
+                statusEl.textContent = 'Connected';
+                statusEl.className = 'font-semibold text-green-500';
+                log('Successfully connected to the server.');
+            });
+
+            socket.on('disconnect', () => {
+                const statusEl = document.getElementById('connection-status');
+                statusEl.textContent = 'Disconnected';
+                statusEl.className = 'font-semibold text-red-500';
+                log('Disconnected from the server.', 'error');
+            });
+
+            // --- Client-Side Emitting Events ---
+            document.getElementById('connectUserBtn').addEventListener('click', () => {
+                const userId = document.getElementById('userId').value;
+                if (userId) {
+                    socket.emit('userConnect', { userId });
+                    log(`Emitted 'userConnect' with ID: ${userId}`, 'user');
+                }
+            });
+
+            document.getElementById('connectAmbulanceBtn').addEventListener('click', () => {
+                const ambulanceId = document.getElementById('ambulanceId').value;
+                if (ambulanceId) {
+                    socket.emit('ambulanceConnect', { ambulanceId });
+                    log(`Emitted 'ambulanceConnect' with ID: ${ambulanceId}`, 'ambulance');
+                }
+            });
+
+            document.getElementById('emergencyBtn').addEventListener('click', () => {
+                const userId = document.getElementById('userId').value;
+                if (!userId) {
+                    alert('Please connect as a user first.');
+                    return;
+                }
+                const data = {
+                    userId: userId,
+                    location: {
+                        type: 'Point',
+                        coordinates: [78.4867, 17.3850] // Sample Hyderabad coordinates
+                    },
+                    medicalHistory: 'Asthma, Allergic to Penicillin'
+                };
+                socket.emit('emergencyRequestFromUser', data);
+                log(`Emitted 'emergencyRequestFromUser'. Payload: ${JSON.stringify(data)}`, 'user');
+            });
+
+            document.getElementById('acceptTripBtn').addEventListener('click', () => {
+                const tripId = document.getElementById('tripId').value;
+                if (!tripId) {
+                    alert('No active trip ID. Wait for a request.');
+                    return;
+                }
+                socket.emit('tripAcceptedByAmbulance', { tripId });
+                log(`Emitted 'tripAcceptedByAmbulance' for trip: ${tripId}`, 'ambulance');
+            });
+            
+            document.getElementById('enRouteBtn').addEventListener('click', () => {
+                const tripId = document.getElementById('tripId').value;
+                if (!tripId) {
+                    alert('No active trip ID.');
+                    return;
+                }
+                socket.emit('ambulanceEnRoute', { tripId });
+                log(`Emitted 'ambulanceEnRoute' for trip: ${tripId}`, 'ambulance');
+            });
+
+            document.getElementById('arrivedBtn').addEventListener('click', () => {
+                const tripId = document.getElementById('tripId').value;
+                if (!tripId) {
+                    alert('No active trip ID.');
+                    return;
+                }
+                socket.emit('ambulanceArrived', { tripId });
+                log(`Emitted 'ambulanceArrived' for trip: ${tripId}`, 'ambulance');
+            });
+            
+            let locationCounter = 0;
+            document.getElementById('updateLocationBtn').addEventListener('click', () => {
+                const tripId = document.getElementById('tripId').value;
+                 if (!tripId) {
+                    alert('No active trip ID.');
+                    return;
+                }
+                locationCounter++;
+                const newCoords = [78.4867 + (locationCounter * 0.001), 17.3850 + (locationCounter * 0.001)];
+                const data = { tripId, coordinates: newCoords };
+                socket.emit('locationUpdateFromAmbulance', data);
+                log(`Emitted 'locationUpdateFromAmbulance'. Payload: ${JSON.stringify(data)}`, 'ambulance');
+            });
+
+
+            // --- Server-Side Listening Events ---
+            socket.on('tripError', (data) => {
+                log(`Received 'tripError': ${data.message}`, 'error');
+            });
+
+            socket.on('newTripRequest', (data) => {
+                document.getElementById('tripId').value = data.tripId;
+                log(`Received 'newTripRequest'. Data: ${JSON.stringify(data)}`, 'ambulance');
+            });
+
+            socket.on('tripStatusUpdate', (data) => {
+                log(`Received 'tripStatusUpdate'. Data: ${JSON.stringify(data)}`, 'user');
+            });
+
+            socket.on('ambulanceLocationForUser', (data) => {
+                log(`Received 'ambulanceLocationForUser'. Coords: ${JSON.stringify(data.coordinates)}`, 'user');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,31 +1,35 @@
-import bcrypt from "bcryptjs";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { ApiError } from "../utils/ApiError.js";
 
-dotenv.config();
+const hashPassword = async (plainPassword) => {
+  return bcrypt.hash(plainPassword, 10);
+};
 
-export const hashpassword = async (plainpassword) => {
-    return await bcrypt.hash(plainpassword, 10)
-}
+const isPasswordMatch = async (enteredPassword, hashedPassword) => {
+  return bcrypt.compare(enteredPassword, hashedPassword);
+};
 
-export const isPasswordMatch = async (enteredPasword, HashedPassword) => {
-    return await bcrypt.compare(enteredPasword, HashedPassword)
-}
+const GenerateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "15m",
+  });
+};
 
-export const GenerateAccessToken = (userId) => {
-    return jwt.sign({ id: userId }, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "15m"
-    });
-}
-
-export const GenerateRefreshToken = (UserId) =>{
-    return jwt.sign({ id: UserId }, process.env.REFRESH_TOKEN_SECRET, {
-        expiresIn: "7d"
-    }); 
-}
+const GenerateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.REFRESH_TOKEN_SECRET,{
+    expiresIn:"100d"
+  });
+};
 
 export const options = {
-    httpOnly: true, 
-    secure: true
-}
+  httpOnly: true,
+  secure: true,
+  sameSite: "strict"
+};
+
+export {
+  hashPassword,
+  isPasswordMatch,
+  GenerateAccessToken,
+  GenerateRefreshToken,
+};

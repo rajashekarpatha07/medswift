@@ -1,16 +1,16 @@
 import { Router } from "express";
-import { registerAmbulance, loginAmbulance, logoutAmbulance, updateAmbulanceStatus, getAmbulanceData, refreshAccessToken } from "../controllers/AmbulanceControllers/Ambulance.controller.js";
-import {  verifyTokenForAmbulanceMiddleware } from "../middlewares/auth.middleware.js";
+import { registerAmbulance, loginAmbulance, logoutAmbulance } from "../controllers/ambulance.controllers/ambulance.controller.js";
+import {AmbulanceverifyMiddleware, AmbulancerefreshTokenmiddleware} from "../middlewares/auth.middleware.js"
 const router = Router();
 
 router.route("/register").post(registerAmbulance);
-router.route("/login").post(loginAmbulance);
-
-// Secure route
-router.route("/logout").post(verifyTokenForAmbulanceMiddleware, logoutAmbulance);
-router.route("/status").patch( verifyTokenForAmbulanceMiddleware, updateAmbulanceStatus);
-router.route("/me").get( verifyTokenForAmbulanceMiddleware, getAmbulanceData)
-router.route("/refresh-token").post(refreshAccessToken)
+router.route("/login").post(loginAmbulance)
 
 
-export default router;
+router.route("/auth/logout").post(AmbulanceverifyMiddleware, logoutAmbulance)
+router.route("/me").get(AmbulancerefreshTokenmiddleware, (req, res)=>{
+  res.json({
+    ambulance: req.ambulance
+  })
+})
+export default router

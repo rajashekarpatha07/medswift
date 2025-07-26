@@ -1,29 +1,29 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Navbar from './components/common/Navbar';
-import Register from './pages/userpages/Register';
-import Login from './pages/userpages/Login';
-import DashboardUser from './pages/userpages/DashboardUser';
-import RegisterAmbulance from './pages/ambulancepages/RegisterAmbulance';
-import LoginAmbulance from './pages/ambulancepages/LoginAmbulance';
-import DashboardAmbulance from './pages/ambulancepages/DashboardAmbulance';
+// import { useState } from "react";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import RegisterUserPage from "./pages/user/RegisterUserPage";
+import LoginUserPage from "./pages/user/LoginUserPage";
+import RegisterAmbulancePage from "./pages/ambulance/RegisterAmbulancePage";
+import LoginAmbulancePage from "./pages/ambulance/LoginAmbulancePage";
+import DashboardUser from "./pages/user/DashboardUser";
+import DashboardAmbulance from "./pages/ambulance/DashboardAmbulance";
+import "./App.css";
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-gray-100">
-        <Navbar />
-        <Routes>
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/dashboard" element={<DashboardUser />} />
-          <Route path="/ambulance/register" element={<RegisterAmbulance />} />
-          <Route path="/ambulance/login" element={<LoginAmbulance />} />
-          <Route path="/ambulance/dashboard" element={<DashboardAmbulance />} />
-          <Route path="/" element={<Register />} />
-        </Routes>
-      </div>
-    </Router>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/register" element={<RegisterUserPage />} />
+        <Route path="/login" element={<LoginUserPage />} />
+        <Route path="/dashboard" element={<DashboardUser />} />
+
+
+        <Route path="/ambulance/register" element={<RegisterAmbulancePage />} />
+        <Route path="/ambulance/login" element={<LoginAmbulancePage />} />
+        <Route path="/ambulance/dashboard" element={<DashboardAmbulance />} />
+
+
+      </Routes>
+    </BrowserRouter>
   );
 }
-
 export default App;

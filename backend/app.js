@@ -1,33 +1,26 @@
 import express from "express";
-import cookieParser from "cookie-parser";
 import cors from "cors";
-import path from "path";
-import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 import userRoutes from "./src/routes/user.route.js";
-import ambulanceRoutes from "./src/routes/ambulance.route.js";
-import expressStatusMonitor from 'express-status-monitor';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+import AmbualnceRoutes from "./src/routes/ambulance.route.js";
 
 const app = express();
 
-// Middleware setup
+// Fixed CORS configuration
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    origin: "http://localhost:5173", // Specific origin instead of wildcard
+    methods: ["POST", "GET", "PATCH", "PUT", "DELETE"], // Fixed UPDATE to PUT
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"], // Optional: specify allowed headers
   })
 );
+
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-app.use(express.static(path.join(__dirname, "../frontend/public")));
 app.use(cookieParser());
-app.use(expressStatusMonitor());
 
-// Routes
-app.use("/api/v1/users", userRoutes);
-app.use("/api/v1/ambulance", ambulanceRoutes);
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/ambulance", AmbualnceRoutes);
 
 export default app;

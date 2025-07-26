@@ -1,11 +1,11 @@
 import mongoose, { Schema } from "mongoose";
 import {
-  hashpassword,
+  hashPassword,
   isPasswordMatch,
   GenerateAccessToken,
   GenerateRefreshToken,
 } from "../utils/auth.util.js";
-const ambulanceSchema = new Schema(
+const AmbulanceSchema = new Schema(
   {
     drivername: {
       type: String,
@@ -48,36 +48,36 @@ const ambulanceSchema = new Schema(
       trim: true,
       unique: true,
     },
-    refreshToken:{
+    refreshToken: {
       type: String,
       default: null,
-    }
+    },
   },
   { timestamps: true }
 );
-ambulanceSchema.index({
+AmbulanceSchema.index({
   driverlocation: "2dsphere",
 });
 
-ambulanceSchema.pre("save", async function (next){
-    if(this.isModified("password")) {
-       this.password = await hashpassword(this.password);
-       next();
-    }else {
-        return next();
-    }
-})
+AmbulanceSchema.pre("save", async function (next) {
+  if (this.isModified("password")) {
+    this.password = await hashPassword(this.password);
+    next();
+  } else {
+    return next();
+  }
+});
 
-ambulanceSchema.methods.checkPassword = async function(enteredPassword) {
+AmbulanceSchema.methods.checkPassword = async function (enteredPassword) {
   return isPasswordMatch(enteredPassword, this.password);
 };
 
-ambulanceSchema.methods.getAccessToken = function () {
+AmbulanceSchema.methods.getAccessToken = function () {
   return GenerateAccessToken(this.id);
 };
 
-ambulanceSchema.methods.getRefreshToken = function () {
+AmbulanceSchema.methods.getRefreshToken = function () {
   return GenerateRefreshToken(this.id);
 };
 
-export const Ambulance = mongoose.model("Ambulance", ambulanceSchema);
+export const Ambulance = mongoose.model("Ambulance", AmbulanceSchema);

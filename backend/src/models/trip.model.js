@@ -48,5 +48,4 @@ const tripSchema = new Schema(
 
 tripSchema.index({ pickupLocation: "2dsphere" });
 
-const Trip = mongoose.model("Trip", tripSchema);
-export default Trip;
+export const Trip = mongoose.model("Trip", tripSchema);
