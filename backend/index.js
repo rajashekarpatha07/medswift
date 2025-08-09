@@ -3,6 +3,7 @@ import app from "./app.js";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import initializeSocketIO from "./src/sockets/socket.js";
+import { connectRedis } from "./src/redis/Redisconnection.js";
 
 const PORT = process.env.PORT || 8000;
 
@@ -26,3 +27,6 @@ connectDB()
   .catch((err) => {
     console.log("DB connection error:", err);
   });
+
+connectRedis()
+

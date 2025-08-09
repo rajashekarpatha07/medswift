@@ -9,8 +9,8 @@ const tripSchema = new Schema(
     },
     ambulanceId: {
       type: Schema.Types.ObjectId,
-      ref: "Ambulance",
-      required: true,
+      ref: "Ambulance"
+      // required: true,
     },
     pickupLocation: {
       type: {
@@ -24,9 +24,14 @@ const tripSchema = new Schema(
         required: true,
       },
     },
+    destinationHospitalId: {
+      type: Schema.Types.ObjectId,
+      ref: "Hospital",
+      default: null,
+    },
     status: {
       type: String,
-      enum: ["Pending", "Accepted", "En-route", "Arrived", "Cancelled"],
+      enum: ["Pending", "Accepted", "En-route", "Arrived", "Cancelled", "Completed"],
       default: "Pending",
     },
     escalated: {
@@ -38,6 +43,7 @@ const tripSchema = new Schema(
       default: false,
     },
     requestedAt: Date,
+    completedAt: Date,
     acceptedAt: Date,
     enRouteAt: Date,
     arrivedAt: Date,
