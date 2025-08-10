@@ -4,8 +4,11 @@ import RegisterUserPage from "./pages/user/RegisterUserPage";
 import LoginUserPage from "./pages/user/LoginUserPage";
 import RegisterAmbulancePage from "./pages/ambulance/RegisterAmbulancePage";
 import LoginAmbulancePage from "./pages/ambulance/LoginAmbulancePage";
-import DashboardUser from "./pages/user/DashboardUser";
-import DashboardAmbulance from "./pages/ambulance/DashboardAmbulance";
+import UserDashboard from "./pages/user/UserDashboard";
+import DriverDashboard from "./pages/ambulance/DriverDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import HospitalDashboard from "./pages/hospital/HospitalDashboard";
+import HospitalLoginPage from "./pages/hospital/HospitalLoginPage";
 import "./App.css";
 
 function App() {
@@ -14,12 +17,20 @@ function App() {
       <Routes>
         <Route path="/register" element={<RegisterUserPage />} />
         <Route path="/login" element={<LoginUserPage />} />
-        <Route path="/dashboard" element={<DashboardUser />} />
+        <Route path="/dashboard" element={<UserDashboard />} />
 
 
         <Route path="/ambulance/register" element={<RegisterAmbulancePage />} />
         <Route path="/ambulance/login" element={<LoginAmbulancePage />} />
-        <Route path="/ambulance/dashboard" element={<DashboardAmbulance />} />
+        <Route path="/ambulance/dashboard" element={< DriverDashboard />} />
+
+
+
+        <Route path="/admindashboard" element={< AdminDashboard />} />
+
+
+        <Route path="/hospital/dashboard" element={< HospitalDashboard />} />
+        <Route path="/hospital/login" element={< HospitalLoginPage />} />
 
 
       </Routes>

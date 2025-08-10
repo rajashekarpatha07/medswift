@@ -140,45 +140,31 @@ const logoutAmbulance = asyncHandler(async (req, res) => {
  * @route PATCH /api/v1/hospital/inventory
  * @access Private (Hospital)
  */
-const updateInventory = asyncHandler(async (req, res) => {
-  const { inventory } = req.body;
-  const hospitalId = req.hospital._id; // Provided by auth middleware
 
-  if (!inventory) {
-    throw new ApiError(400, "Inventory data is required.");
-  }
+/**
+ * @description Update the status of the logged-in ambulance
+ * @route PATCH /api/v1/ambulance/status
+ * @access Private (Ambulance)
+ */
+const updateStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body;
+  // This assumes you add middleware that provides req.ambulance
+  const ambulanceId = req.ambulance._id;
 
-  // Build the update object dynamically using dot notation for nested fields
-  const updateFields = {};
-  if (inventory.beds?.available !== undefined) {
-    updateFields["inventory.beds.available"] = inventory.beds.available;
-  }
-  if (inventory.beds?.total !== undefined) {
-    updateFields["inventory.beds.total"] = inventory.beds.total;
-  }
-  if (inventory.bloodStock) {
-    for (const bloodType in inventory.bloodStock) {
-      updateFields[`inventory.bloodStock.${bloodType}`] = inventory.bloodStock[bloodType];
-    }
+  if (!status || !['ready', 'offline'].includes(status)) {
+    throw new ApiError(400, "Invalid status provided. Must be 'ready' or 'offline'.");
   }
 
-  if (Object.keys(updateFields).length === 0) {
-    throw new ApiError(400, "No valid inventory fields to update.");
-  }
-
-  const updatedHospital = await Hospital.findByIdAndUpdate(
-    hospitalId,
-    { $set: updateFields },
-    { new: true, runValidators: true }
-  ).select("-password -refreshToken");
-
-  if (!updatedHospital) {
-    throw new ApiError(404, "Hospital not found.");
-  }
+  const updatedAmbulance = await Ambulance.findByIdAndUpdate(
+    ambulanceId,
+    { $set: { status: status } },
+    { new: true }
+  ).select("status");
 
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedHospital.inventory, "Inventory updated successfully."));
+    .json(new ApiResponse(200, updatedAmbulance, "Status updated successfully."));
 });
 
-export { registerAmbulance, loginAmbulance, logoutAmbulance};
+
+export { registerAmbulance, loginAmbulance, logoutAmbulance, updateStatus};

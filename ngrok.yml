@@ -1,0 +1,12 @@
+version: "2"
+authtoken: 315WRUGWCehL11SyErEe2ph2CdT_7HTijuxnqTa4vbRutbE1o
+
+tunnels:
+  frontend:
+    proto: http
+    addr: 5173
+    hostname: myapp.ngrok-free.app
+  backend:
+    proto: http
+    addr: 8000
+    hostname: myapp.ngrok-free.app

@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/AsyncHandler.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 import { Ambulance } from "../models/ambulance.model.js";
+// Import the Hospital model
+import { Hospital } from "../models/hospital.model.js"; 
 import { connect } from "mongoose";
 
 const UserverifyMiddleware = asyncHandler(async (req, res, next) => {
@@ -81,7 +83,7 @@ const refreshTokenmiddleware = asyncHandler(async (req, res, next) => {
     req.user = user;
     next();
   } catch (error) {
-    throw new ApiError(401, error?.message || "Invalid refreshToken")
+    throw new ApiError(401, error?.message || "Invalid refreshToken");
   }
 });
 
@@ -96,7 +98,7 @@ const AmbulancerefreshTokenmiddleware = asyncHandler(async (req, res, next) => {
     }
 
     const decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
-    
+
     const ambulance = await Ambulance.findById(decodedToken?.id).select(
       "-password -refreshToken"
     );
@@ -113,4 +115,43 @@ const AmbulancerefreshTokenmiddleware = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { UserverifyMiddleware, AmbulanceverifyMiddleware, refreshTokenmiddleware, AmbulancerefreshTokenmiddleware };
+const hospitalRefreshTokenMiddleware = asyncHandler(async (req, res, next) => {
+  try {
+    const token =
+      req.cookies?.refreshToken ||
+      req.header("Authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      throw new ApiError(401, "Unauthorized: Refresh token is missing.");
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = jwt.verify(token, process.env.REFRESH_TOKEN_SECRET);
+    } catch (err) {
+      throw new ApiError(401, "Invalid or expired refresh token.");
+    }
+
+    // This line will now work because Hospital is imported
+    const hospital = await Hospital.findById(decodedToken?.id).select(
+      "-password -refreshToken"
+    );
+
+    if (!hospital) {
+      throw new ApiError(401, "Invalid refresh token: Hospital not found.");
+    }
+
+    req.hospital = hospital;
+    next();
+  } catch (error) {
+    throw new ApiError(401, error?.message || "Invalid refresh token.");
+  }
+});
+
+export {
+  UserverifyMiddleware,
+  AmbulanceverifyMiddleware,
+  refreshTokenmiddleware,
+  AmbulancerefreshTokenmiddleware,
+  hospitalRefreshTokenMiddleware,
+};

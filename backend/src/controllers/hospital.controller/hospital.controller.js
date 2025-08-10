@@ -100,8 +100,8 @@ const loginHospital = asyncHandler(async (req, res) => {
  * @route POST /api/v1/hospital/logout
  * @access Private (Hospital)
  */
+// Logout Hospital
 const logoutHospital = asyncHandler(async (req, res) => {
-  // We assume a middleware provides req.hospital
   await Hospital.findByIdAndUpdate(
     req.hospital._id,
     { $set: { refreshToken: null } },
@@ -115,15 +115,9 @@ const logoutHospital = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, {}, "Hospital logged out successfully."));
 });
 
-/**
- * @description Update inventory for a specific hospital
- * @route PATCH /api/v1/hospital/inventory/:hospitalId
- * @access Public (for now, for testing)
- */
+// Update Inventory (Hospital can only update their own)
 const updateInventory = asyncHandler(async (req, res) => {
   const { inventory } = req.body;
-  // Get hospitalId from URL parameter for testing
-  const { hospitalId } = req.params;
 
   if (!inventory) {
     throw new ApiError(400, "Inventory data is required.");
@@ -149,24 +143,22 @@ const updateInventory = asyncHandler(async (req, res) => {
   }
 
   const updatedHospital = await Hospital.findByIdAndUpdate(
-    hospitalId,
+    req.hospital._id,
     { $set: updateFields },
     { new: true, runValidators: true }
   ).select("-password -refreshToken");
 
   if (!updatedHospital) {
-    throw new ApiError(404, "Hospital not found with the provided ID.");
+    throw new ApiError(404, "Hospital not found.");
   }
 
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        updatedHospital.inventory,
-        "Inventory updated successfully."
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      updatedHospital.inventory,
+      "Inventory updated successfully."
+    )
+  );
 });
 
 export { registerHospital, loginHospital, logoutHospital, updateInventory };

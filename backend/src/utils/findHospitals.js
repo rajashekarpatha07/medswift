@@ -11,7 +11,7 @@ const formatBloodGroupKey = (bloodGroup) => {
  * @param {string} bloodGroup - The required blood group (e.g., "O-", "AB+").
  * @returns {Promise<Array>} A promise that resolves to an array of suitable hospital documents.
  */
-export const findNearbyHospitals = async (location, bloodGroup) => {
+const findNearbyHospitals = async (location, bloodGroup) => {
   console.log(
     `Searching for hospitals with available beds and blood group: ${bloodGroup}`
   );
@@ -51,3 +51,7 @@ export const findNearbyHospitals = async (location, bloodGroup) => {
     throw error;
   }
 };
+
+export {
+  findNearbyHospitals
+}
